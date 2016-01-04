@@ -1,0 +1,234 @@
+So I felt like mucking about with clojurescript and I was tired of my previous blog platforms. Since I have been playing with react/reagent on other projects I decided to see how long before I could get something useful up and running. I will create two projects. One for the fronted SPA and another that will simply serve up blog posts using some data structure. Normally there would be one project to do both but I decided to separate them into two projects.
+
+Let's start with the SPA.
+
+First create new reagent project:
+
+lein new reagent bright-paper-werewolves
+
+add the following libs to the project file
+
+[cljs-ajax "0.5.0"]
+[com.cognitect/transit-cljs "0.8.225"]
+
+make it look nice by adding tufte.css ( https://edwardtufte.github.io/tufte-css/ )
+
+clone the repo then copy the needed files to the clojurescript project
+
+cp tufte.css ~/projects/bright_paper_werewolves/resources/public/css/
+cp -r et-book ~/projects/bright_paper_werewolves/resources/public/css/
+
+edit the hander file to use the new css files
+
+src/clj/bright_paper_werewolves/handler.clj
+
+edit this line:
+
+(include-css (if (env :dev) "css/tufte.css" "css/tufte.css"))
+
+Before finishing the front-end I need to get the back end working so I can serve something.
+
+Blog post server
+
+Now decide on data struct to hold the blog posts... since this is clojure I am going to use a map.
+
+Something like this:
+(def blog-posts
+  {:ecallen
+   {:UUID
+    {:title "Bright Paper Werewolves"
+     :author "ECAllen"
+     :post-timestamp "some epoch time"
+     :revision 0
+     :last-update "some epoch time"
+     :text "..." }}})
+
+create the blog server using lein
+
+lein new blog-server
+
+At first it will only respond to a GET and deliver a simple map via transit using liberator. Add the needed plugins and libs to the project.clj.
+
+(defproject blog-server "0.1.0-SNAPSHOT"
+  :description "server for blog posts"
+  :url "https://github.com/ECAllen/blog-server.git"
+  :license {:name "Eclipse Public License"
+            :url "http://www.eclipse.org/legal/epl-v10.html"}
+  :dependencies [[org.clojure/clojure "1.7.0"]
+                 [liberator "0.14.0"]
+                 [compojure "1.4.0"]
+                 [io.clojure/liberator-transit "0.3.0"]
+                 [ring-transit "0.1.4"]
+                 [liberator "0.14.0"]
+                 [ring-cors "0.1.7"]
+                 [ring/ring-core "1.4.0"]]
+  :ring {:handler blog-server.core/handler}
+  :plugins [[lein-ring "0.8.11"]])
+
+Next code needs to be written to respond to a GET request and deliver the map to the browser. This is the minimal code to get that done.
+
+(ns blog-server.core
+  (:require
+   [liberator.core :as liber]
+   [clojure.pprint :as pp]
+   [compojure.core :as compj]
+   [compojure.route :as route]
+   [compojure.handler :as handler]
+   [compojure.response :as response]
+   [ring.middleware.params :as param]
+   [ring.middleware.cors :as cors]
+   [io.clojure.liberator-transit :as transit]
+   [ring.middleware.transit :as ring-transit]
+   [clojure.string :as str])
+  (:import java.io.File))
+
+;; map to hold the blog posts. this will move to some persistent storage in the next iteration.
+;; TODO move out of code, generate UUID and timestamp
+(def blog-posts
+  {:ecallen
+   {:dd6bff92-8e31-11e5-acb0-ffbf3d8c2695dd6bff92-8e31-11e5-acb0-ffbf3d8c2695
+    {:title "Bright Paper Werewolves"
+     :author "ECAllen"
+     :post-timestamp "1447878296"
+     :revision 0
+     :last-update "1447878296"
+     :text "c'mon polluted eyeballs
+stop scouting out the field
+jump up bright paper werewolves
+and everybody everywhere
+
+anyone can scratch
+and anyone can win
+so bring out another batch
+
+they want to get out of here
+but they can't find the exit
+they cling to the cinema
+and they can't find security
+then they finally got recognized
+so they left in obscurity and misery
+-Guided By Voices, Under the Bushes, Under the Stars"}}})
+
+;; the liberator resource definition for the GET request
+(liber/defresource posts [userid]
+  :available-media-types ["application/transit+json"
+                          "application/transit+msgpack"
+                          "application/json"]
+  :handle-ok (fn [_] (get blog-posts (keyword userid))))
+
+;; ======================
+;; Routes
+;; ======================
+
+;; route definitions
+(compj/defroutes main-routes
+  (compj/GET "/posts/:userid" [userid] (posts userid)))
+
+;; handler for ring
+(def handler
+  (-> main-routes
+      param/wrap-params
+      ring-transit/wrap-transit-params
+      ;; cors needed for the OPTIONS from the browser
+      (cors/wrap-cors :access-control-allow-origin [#".*"]
+                      :access-control-allow-methods [:get :options]
+                      :access-control-allow-headers ["content-type"])))
+
+OK now that is out of the way. Let's switch back to the front end and finish the minimum viable code there.
+
+Pull in the various libraries
+
+(ns bright-paper-werewolves.core
+    (:require [reagent.core :as reagent]
+              [reagent.ratom :as ratom]
+              [reagent.debug :as debug]
+              [reagent.session :as session]
+              [secretary.core :as secretary :include-macros true]
+              [accountant.core :as accountant]
+              [ajax.core :as ajax]
+              [cognitect.transit :as transit]
+              ))
+
+Global vars used in the rest of the code
+;; -------------------------
+;; Globals
+
+;; reagent vars for react
+(def posts (reagent/atom {}))
+(def p (ratom/run! (debug/println "posts: " @posts)))
+
+;; blog-server info, for now assume static
+(def server "blog.ecallen.com")
+(def port "3000")
+(def userid "ecallen")
+
+;; -------------------------
+;;  AJAX
+
+error handler for debugging
+
+(defn error-handler [response]
+  (debug/println (str "Error status: " (:status response)))
+  (debug/println (str "Status details: " (:status-text response)))
+  (debug/println (str "Failure: " (:failure response)))
+  (if (contains? response :parse)
+    (debug/println (str "Parse error: " (:parse response)))
+    (debug/println (str "Original Text: " (:original-text response))))
+  (debug/println (str "Error response: " response)))
+
+AJAX get fns
+
+(defn ajax-get [url handler error-handler]
+  (ajax/GET url
+    {:handler handler
+     :error-handler error-handler
+     :response-format :transit}))
+
+(defn get-posts []
+  (ajax-get (str "http://" server ":" port "/posts/" userid) posts-handler error-handler))
+
+;; -------------------------
+;; Views
+
+This actually defines the main blog page
+
+(defn home-page []
+  [:div
+  [:h1 "ECAllen"]
+  (doall (for [k (keys @posts)]
+    ^{:key k}
+    [:section
+      [:h2 (get-in @posts [k :title])]
+      [:p (get-in @posts [k :post-timestamp])]
+      [:p (get-in @posts [k :text])]]
+          ))])
+
+(defn current-page []
+  [:div [(session/get :current-page)]])
+
+;; -------------------------
+;; Routes
+
+(secretary/defroute "/" []
+  (session/put! :current-page #'home-page))
+
+;; -------------------------
+;; Initialize app
+
+(get-posts)
+
+(defn mount-root []
+  (reagent/render [current-page] (.getElementById js/document "app")))
+
+(defn init! []
+  (accountant/configure-navigation!)
+  (accountant/dispatch-current!)
+  (mount-root))
+
+Clojurescript and React are overkill for what this is doing but there will be room to add functionality in the future. This is also an experiment in single page apps and gives me a customizable blogging platform.
+
+github pages:
+
+https://github.com/ECAllen/blog-server
+
+https://github.com/ECAllen/bright_paper_werewolves
