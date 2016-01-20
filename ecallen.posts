@@ -1,23 +1,17 @@
 {:ecallen
-   {:dd6bff92-8e31-11e5-acb0-ffbf3d8c2695dd6bff92-8e31-11e5-acb0-ffbf3d8c2695
-    {:title "Bright Paper Werewolves"
-     :author "ECAllen"
-     :post-timestamp "1447878296"
-     :revision 0
-     :last-update "1447878296"
-     :text "c'mon polluted eyeballs
-stop scouting out the field
-jump up bright paper werewolves
-and everybody everywhere
-
-anyone can scratch
-and anyone can win
-so bring out another batch
-
-they want to get out of here
-but they can't find the exit
-they cling to the cinema
-and they can't find security
-then they finally got recognized
-so they left in obscurity and misery
--Guided By Voices, Under the Bushes, Under the Stars"}}}
+ {:dd6bff92-8e31-11e5-acb0-ffbf3d8c2695dd6bff92-8e31-11e5-acb0-ffbf3d8c2695
+  {:title "Bright Paper Werewolves",
+   :author "ECAllen",
+   :post-timestamp "1447878296",
+   :revision 0,
+   :last-update "1447878296",
+   :text
+   "c'mon polluted eyeballs\nstop scouting out the field\njump up bright paper werewolves\nand everybody everywhere\n\nanyone can scratch\nand anyone can win\nso bring out another batch\n\nthey want to get out of here\nbut they can't find the exit\nthey cling to the cinema\nand they can't find security\nthen they finally got recognized\nso they left in obscurity and misery\n-Guided By Voices, Under the Bushes, Under the Stars"},
+  :e43039ec-4e8e-4210-8f31-8fdd30261566
+  {:title "Deploying Blog",
+   :author "ECAllen",
+   :post-timestamp 1453227655708,
+   :last-update 1453227655709,
+   :revision 0,
+   :text
+   "Deployment\n\nFirst create the jar files for the client and server\n\nedit bright-paper-werewolves/src/clj/bright-paper-werewolves/server.clj\n\nchange the port to 4000\n\nlein do clean, uberjar\n\n\ncreate a uberjar for the blog server\n\nchange the port to 4010\n\nlein do clean, uberjar\n\nDeploy the jars to a web server. At this point there are many ways to get the server running (nginx, tomcat etc...) so I wont go into particulars. You also might want to look into heroku as an option.\n\nI am going to create a systemd service file for each app then configure nginx\n\nCreating the systemd service (unit) files\n\n\n[Unit]\nDescription=Blog server\nAfter=syslog.target\nAfter=network.target\n\n[Service]\nType=simple\nUser=blog\nExecStart=\n\n# Give a reasonable amount of time for the server to start up/shut down\nTimeoutSec=300\n\n[Install]\nWantedBy=multi-user.target\n"}}}

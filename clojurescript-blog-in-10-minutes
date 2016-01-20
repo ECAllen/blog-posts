@@ -1,15 +1,20 @@
-So I felt like mucking about with clojurescript and I was tired of my previous blog platforms. Since I have been playing with react/reagent on other projects I decided to see how long before I could get something useful up and running. I will create two projects. One for the fronted SPA and another that will simply serve up blog posts using some data structure. Normally there would be one project to do both but I decided to separate them into two projects.
+I was listening to a excellent podcast with Eric Normand So I felt like mucking about with clojurescript and I was tired of my previous blog platforms. Since I have been playing with react/reagent on other projects I decided to see how long before I could get something useful up and running. I will create two projects. One for the fronted SPA and another that will simply serve up blog posts using some data structure. Normally there would be one project to do both but I decided to separate them into two projects.
 
 Let's start with the SPA.
 
 First create new reagent project:
 
-lein new reagent bright-paper-werewolves
+```
+> lein new reagent bright-paper-werewolves
+```
 
 add the following libs to the project file
 
+```
 [cljs-ajax "0.5.0"]
+
 [com.cognitect/transit-cljs "0.8.225"]
+```
 
 make it look nice by adding tufte.css ( https://edwardtufte.github.io/tufte-css/ )
 
@@ -231,4 +236,4 @@ github pages:
 
 https://github.com/ECAllen/blog-server
 
-https://github.com/ECAllen/bright_paper_werewolves
+https://github.com/ECAllen/bright_paper_werewolves"
