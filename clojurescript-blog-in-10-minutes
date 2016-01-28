@@ -1,43 +1,16 @@
-I was listening to a excellent podcast with Eric Normand So I felt like mucking about with clojurescript and I was tired of my previous blog platforms. Since I have been playing with react/reagent on other projects I decided to see how long before I could get something useful up and running. I will create two projects. One for the fronted SPA and another that will simply serve up blog posts using some data structure. Normally there would be one project to do both but I decided to separate them into two projects.
+#### The Challenge
 
-Let's start with the SPA.
+I was listening to an excellent [podcast with Eric Normand](http://giantrobots.fm/172)  where he mentioned that the tooling around clojurescript was mature enough to recreate the famous [Ruby 15 minute blog engine](https://www.youtube.com/watch?v=Gzj723LkRJY). So I felt like mucking about with clojurescript and I was tired of my previous blog platform. Since I have been playing with react/reagent on other projects I decided to see how long it would take before I could get something useful up and running.
 
-First create new reagent project:
+I will create two projects: one for the fronted SPA (Single Page App) and another that will simply serve up blog posts using a data structure. Normally there would be one project to do both but I decided to separate them into two projects.
 
-```
-> lein new reagent bright-paper-werewolves
-```
+#### The Solution
 
-add the following libs to the project file
+##### Shape of the data
 
-```
-[cljs-ajax "0.5.0"]
+First we need to decide on the shape of data structure that the SPA and the back-end  will share. The following should do:
 
-[com.cognitect/transit-cljs "0.8.225"]
-```
-
-make it look nice by adding tufte.css ( https://edwardtufte.github.io/tufte-css/ )
-
-clone the repo then copy the needed files to the clojurescript project
-
-cp tufte.css ~/projects/bright_paper_werewolves/resources/public/css/
-cp -r et-book ~/projects/bright_paper_werewolves/resources/public/css/
-
-edit the hander file to use the new css files
-
-src/clj/bright_paper_werewolves/handler.clj
-
-edit this line:
-
-(include-css (if (env :dev) "css/tufte.css" "css/tufte.css"))
-
-Before finishing the front-end I need to get the back end working so I can serve something.
-
-Blog post server
-
-Now decide on data struct to hold the blog posts... since this is clojure I am going to use a map.
-
-Something like this:
+```clojure
 (def blog-posts
   {:ecallen
    {:UUID
@@ -47,13 +20,20 @@ Something like this:
      :revision 0
      :last-update "some epoch time"
      :text "..." }}})
+```
+##### Backend/Liberator REST server
 
-create the blog server using lein
+Now that we know what the data will look like, let's create a process to serve it up to the front end. At first it will only respond to a GET and deliver a simple map via transit using liberator.
 
+Create the blog server using lein
+
+```shell
 lein new blog-server
+```
 
-At first it will only respond to a GET and deliver a simple map via transit using liberator. Add the needed plugins and libs to the project.clj.
+Add the needed plugins and libs to the project.clj.
 
+```clojure
 (defproject blog-server "0.1.0-SNAPSHOT"
   :description "server for blog posts"
   :url "https://github.com/ECAllen/blog-server.git"
@@ -66,13 +46,24 @@ At first it will only respond to a GET and deliver a simple map via transit usin
                  [ring-transit "0.1.4"]
                  [liberator "0.14.0"]
                  [ring-cors "0.1.7"]
-                 [ring/ring-core "1.4.0"]]
+                 [ring/ring-core "1.4.0"]
+                 [ring/ring-jetty-adapter "1.4.0"]
+                 [juxt/dirwatch "0.2.3"]
+                 [environ "1.0.1"]]
+
   :ring {:handler blog-server.core/handler}
-  :plugins [[lein-ring "0.8.11"]])
+  :main blog-server.core
+  :plugins [[lein-ring "0.8.11"]
+            [lein-environ "1.0.1"]]
+  :profiles {:uberjar {:aot :all
+                       :env {:production true}}})
+```
 
 Next code needs to be written to respond to a GET request and deliver the map to the browser. This is the minimal code to get that done.
 
+```clojure
 (ns blog-server.core
+  (:gen-class)
   (:require
    [liberator.core :as liber]
    [clojure.pprint :as pp]
@@ -84,65 +75,104 @@ Next code needs to be written to respond to a GET request and deliver the map to
    [ring.middleware.cors :as cors]
    [io.clojure.liberator-transit :as transit]
    [ring.middleware.transit :as ring-transit]
-   [clojure.string :as str])
+   [ring.adapter.jetty :refer [run-jetty]]
+   [clojure.string :as str]
+   [clojure.edn :as edn]
+   [juxt.dirwatch :refer (watch-dir)]
+   [environ.core :refer [env]])
   (:import java.io.File))
 
-;; map to hold the blog posts. this will move to some persistent storage in the next iteration.
-;; TODO move out of code, generate UUID and timestamp
-(def blog-posts
-  {:ecallen
-   {:dd6bff92-8e31-11e5-acb0-ffbf3d8c2695dd6bff92-8e31-11e5-acb0-ffbf3d8c2695
-    {:title "Bright Paper Werewolves"
-     :author "ECAllen"
-     :post-timestamp "1447878296"
-     :revision 0
-     :last-update "1447878296"
-     :text "c'mon polluted eyeballs
-stop scouting out the field
-jump up bright paper werewolves
-and everybody everywhere
+;; ======================
+;; Globals
+;; ======================
 
-anyone can scratch
-and anyone can win
-so bring out another batch
+(def blog-file (env :blog-file))
 
-they want to get out of here
-but they can't find the exit
-they cling to the cinema
-and they can't find security
-then they finally got recognized
-so they left in obscurity and misery
--Guided By Voices, Under the Bushes, Under the Stars"}}})
+(def blog-dir (env :blog-dir))
 
-;; the liberator resource definition for the GET request
+(def port (env :port))
+
+;; ======================
+;; Persist
+;; ======================
+
+(defn read-file [file]
+  (edn/read-string (slurp file)))
+
+(defn save-file [data file append-mode]
+  (with-open [f (clojure.java.io/writer file :append append-mode)]
+    (pp/pprint @data f)))
+
+(defn get-posts [file]
+  (if (not (.exists (File. file)))
+    (save-file (atom {}) file true))
+  (atom (read-file file)))
+
+(def blog-posts (get-posts blog-file))
+
+(defn update-posts [event]
+  (let [file (-> event :file bean :path str)
+        action (:action event)]
+      (if (and (= action :modify) (= file blog-file))
+          (do (reset! blog-posts (read-file blog-file))))))
+
+(watch-dir update-posts (clojure.java.io/file blog-dir))
+
+;; ======================
+;; Resources
+;; ======================
 (liber/defresource posts [userid]
   :available-media-types ["application/transit+json"
                           "application/transit+msgpack"
                           "application/json"]
-  :handle-ok (fn [_] (get blog-posts (keyword userid))))
+  :handle-ok (fn [_] (get @blog-posts (keyword userid))))
 
 ;; ======================
-;; Routes
+;; Routes/Hndlers
 ;; ======================
 
-;; route definitions
 (compj/defroutes main-routes
-  (compj/GET "/posts/:userid" [userid] (posts userid)))
+  (compj/GET "/posts/:userid" [userid] (posts userid))
+  (route/not-found "<h1>Page not found</h1>"))
 
-;; handler for ring
 (def handler
   (-> main-routes
       param/wrap-params
       ring-transit/wrap-transit-params
-      ;; cors needed for the OPTIONS from the browser
       (cors/wrap-cors :access-control-allow-origin [#".*"]
-                      :access-control-allow-methods [:get :options]
+                      :access-control-allow-methods [:get :post :options]
                       :access-control-allow-headers ["content-type"])))
 
-OK now that is out of the way. Let's switch back to the front end and finish the minimum viable code there.
+;; ======================
+;; Main
+;; ======================
 
-Pull in the various libraries
+(defn -main [& args]
+  (run-jetty handler {:port port :join? false}))
+```
+The above code watches a file which holds the map for the blog post's data. When the file is updated the atom that holds the blog posts will be updated. Yes,most solutions would use a databases here, but that is overkill for my purposes. This is only a personal blog.
 
+OK now that's out of the way. Let's switch back to the front end and finish the minimum viable code there.
+
+##### Frontend/React based SPA (Single Page App)
+
+First create a new reagent project named after a song from one of [my favorite bands](http://genius.com/Guided-by-voices-bright-paper-werewolves-lyrics):
+
+```shell
+> lein new reagent bright-paper-werewolves
+```
+
+add the following libs to the project.clj file
+
+```clojure
+[cljs-ajax "0.5.1"]
+[markdown-clj "0.9.85"]
+[com.cognitect/transit-cljs "0.8.232"]
+```
+
+Now for the code. Most of the code below came from the lein reagent template.
+
+```clojure
 (ns bright-paper-werewolves.core
     (:require [reagent.core :as reagent]
               [reagent.ratom :as ratom]
@@ -151,10 +181,10 @@ Pull in the various libraries
               [secretary.core :as secretary :include-macros true]
               [accountant.core :as accountant]
               [ajax.core :as ajax]
-              [cognitect.transit :as transit]
-              ))
+              [markdown.core :refer [md->html]]
+              [cognitect.transit :as transit]))
 
-Global vars used in the rest of the code
+
 ;; -------------------------
 ;; Globals
 
@@ -163,15 +193,22 @@ Global vars used in the rest of the code
 (def p (ratom/run! (debug/println "posts: " @posts)))
 
 ;; blog-server info, for now assume static
-(def server "blog.ecallen.com")
-(def port "3000")
+;; --------------------------
+;; Testing
+;; (def server "localhost")
+;; (def port "3000")
+
+;; --------------------------
+;; Production
+(def server "ecallen.com")
+(def port "4010")
+
 (def userid "ecallen")
 
 ;; -------------------------
 ;;  AJAX
 
-error handler for debugging
-
+;; error handler for debugging
 (defn error-handler [response]
   (debug/println (str "Error status: " (:status response)))
   (debug/println (str "Status details: " (:status-text response)))
@@ -181,11 +218,13 @@ error handler for debugging
     (debug/println (str "Original Text: " (:original-text response))))
   (debug/println (str "Error response: " response)))
 
-AJAX get fns
+(defn posts-handler [response]
+  (reset! posts {})
+  (swap! posts conj response))
 
 (defn ajax-get [url handler error-handler]
   (ajax/GET url
-    {:handler handler
+    {:handler posts-handler
      :error-handler error-handler
      :response-format :transit}))
 
@@ -195,18 +234,20 @@ AJAX get fns
 ;; -------------------------
 ;; Views
 
-This actually defines the main blog page
+(defn markdown-component [content]
+    [:div {:dangerouslySetInnerHTML
+           {:__html (-> content md->html)}}])
 
 (defn home-page []
   [:div
-  [:h1 "ECAllen"]
-  (doall (for [k (keys @posts)]
-    ^{:key k}
-    [:section
-      [:h2 (get-in @posts [k :title])]
-      [:p (get-in @posts [k :post-timestamp])]
-      [:p (get-in @posts [k :text])]]
-          ))])
+   [:h1 "ECAllen"]
+   (doall (for [k (keys (sort-by (comp :post-timestamp second) > @posts))]
+           ^{:key k}
+           [:section
+             [:h2 (get-in @posts [k :title])]
+             [:p (get-in @posts [k :post-timestamp])]
+             [:p (markdown-component (get-in @posts [k :text]))]]))])
+
 
 (defn current-page []
   [:div [(session/get :current-page)]])
@@ -219,7 +260,6 @@ This actually defines the main blog page
 
 ;; -------------------------
 ;; Initialize app
-
 (get-posts)
 
 (defn mount-root []
@@ -229,10 +269,45 @@ This actually defines the main blog page
   (accountant/configure-navigation!)
   (accountant/dispatch-current!)
   (mount-root))
+```
 
-Clojurescript and React are overkill for what this is doing but there will be room to add functionality in the future. This is also an experiment in single page apps and gives me a customizable blogging platform.
+###### Style the page
 
-github pages:
+We are going to make it look nice by adding [tufte.css]( https://edwardtufte.github.io/tufte-css/)
+
+Clone the tufte repo then copy the needed files to the clojurescript project
+
+```shell
+cp tufte.css ~/projects/bright_paper_werewolves/resources/public/css/
+cp -r et-book ~/projects/bright_paper_werewolves/resources/public/css/
+```
+edit the hander file to use the new css file src/clj/bright_paper_werewolves/handler.clj
+
+make the include-css line look like the following:
+
+```clojure
+(include-css (if (env :dev) "css/tufte.css" "css/tufte.css"))
+```
+
+##### Adding blog posts
+
+For now I am keeping the posts in a file under git. When I want to CRUD posts I simply update the file and then do the git pull on the server. The blog server will watch the file and update the posts when it is modified. This is admittedly a very idiomatic process and it works for a personal blog.
+
+#### Conclusions
+
+Was I able to do this in 15 minutes?
+
+No. But I was able to do about 90% of it in 15 min. The remaining 10% took quite a bit longer but this was because I was using libraries that I had never used before and I was figuring things out. I don't have a lot of web programming experience with clojure so I was surprised at how much I was able to do in a short time.
+
+Is my solution as robust as the Ruby 15 minute blog?
+
+No but it is mainly due to my inexperience and because I was creating something mainly for myself, so I don't care if it is idiomatic to my work-flow.
+
+Do I think a 15 minute clojurescript solution could be created?
+
+Absolutely, but it might take 20 minutes. The main hurdle in the clojure(script) ecosystem is understanding all the libraries. You don't have this friction in the Rails framework but I am certain the equivalent work could be accomplished. Honestly if you created the right lein templates or utilized boot the process could be incredibly streamlined. 
+
+#### github pages
 
 https://github.com/ECAllen/blog-server
 

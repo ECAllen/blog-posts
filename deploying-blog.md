@@ -1,4 +1,4 @@
-Deployment
+### Deployment
 
 First create the jar files for the client and server
 
@@ -6,14 +6,21 @@ edit bright-paper-werewolves/src/clj/bright-paper-werewolves/server.clj
 
 change the port to 4000
 
+```shell
+
 lein do clean, uberjar
 
+```
 
 create a uberjar for the blog server
 
 change the port to 4010
 
+```shell
+
 lein do clean, uberjar
+
+```
 
 Deploy the jars to a web server. At this point there are many ways to get the server running (nginx, tomcat etc...) so I wont go into particulars. You also might want to look into heroku as an option.
 
@@ -21,6 +28,7 @@ I am going to create a systemd service file for each app then configure nginx
 
 Creating the systemd service (unit) files
 
+``` shell
 
 [Unit]
 Description=Blog server
@@ -37,3 +45,4 @@ TimeoutSec=300
 
 [Install]
 WantedBy=multi-user.target
+```

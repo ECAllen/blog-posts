@@ -48,8 +48,10 @@
     (prn (.indexOf ids id) (get-in @posts [user id :title]) id))))
 
 (defn update-post-text [idx fname posts]
-  (let [id (idx->id idx)
+  (let [id (idx->id idx posts)
         text (slurp fname)]
       (dosync (alter posts assoc-in [user id :text] text))))
 
-; (nth (vec (sort (keys (user @posts)))) 1)
+(defn delete-post [idx posts]
+  (let [id (idx->id idx posts)]
+      (dosync (alter posts update-in [user] dissoc id))))
