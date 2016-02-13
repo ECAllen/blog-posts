@@ -49,14 +49,15 @@ Add the needed plugins and libs to the project.clj.
                  [ring/ring-core "1.4.0"]
                  [ring/ring-jetty-adapter "1.4.0"]
                  [juxt/dirwatch "0.2.3"]
-                 [environ "1.0.1"]]
-
+                 [environ "1.0.2"]]
   :ring {:handler blog-server.core/handler}
   :main blog-server.core
-  :plugins [[lein-ring "0.8.11"]
-            [lein-environ "1.0.1"]]
-  :profiles {:uberjar {:aot :all
-                       :env {:production true}}})
+  :uberjar-name "blog-server.jar"
+  :profiles {:uberjar {:env {:production true}
+                       :aot :all
+                       :omit-source true}}
+ :plugins [[lein-ring "0.9.7"]
+           [lein-environ "1.0.2"]])
 ```
 
 Next code needs to be written to respond to a GET request and deliver the map to the browser. This is the minimal code to get that done.
@@ -78,19 +79,18 @@ Next code needs to be written to respond to a GET request and deliver the map to
    [ring.adapter.jetty :refer [run-jetty]]
    [clojure.string :as str]
    [clojure.edn :as edn]
-   [juxt.dirwatch :refer (watch-dir)]
+   [juxt.dirwatch :refer [watch-dir]]
    [environ.core :refer [env]])
   (:import java.io.File))
+
 
 ;; ======================
 ;; Globals
 ;; ======================
 
 (def blog-file (env :blog-file))
-
 (def blog-dir (env :blog-dir))
-
-(def port (env :port))
+(def port (Integer/parseInt (env :port)))
 
 ;; ======================
 ;; Persist
@@ -113,10 +113,10 @@ Next code needs to be written to respond to a GET request and deliver the map to
 (defn update-posts [event]
   (let [file (-> event :file bean :path str)
         action (:action event)]
-      (if (and (= action :modify) (= file blog-file))
-          (do (reset! blog-posts (read-file blog-file))))))
-
-(watch-dir update-posts (clojure.java.io/file blog-dir))
+    (if (and (= action :modify) (= file blog-file))
+      (do
+        ; (prn "debug" event)
+        (reset! blog-posts (read-file blog-file))))))
 
 ;; ======================
 ;; Resources
@@ -147,8 +147,10 @@ Next code needs to be written to respond to a GET request and deliver the map to
 ;; Main
 ;; ======================
 
-(defn -main [& args]
-  (run-jetty handler {:port port :join? false}))
+(defn -main [ & args]
+  (run-jetty handler {:port port :join? false})
+  (watch-dir update-posts (clojure.java.io/file blog-dir)))
+
 ```
 The above code watches a file which holds the map for the blog post's data. When the file is updated the atom that holds the blog posts will be updated. Yes,most solutions would use a databases here, but that is overkill for my purposes. This is only a personal blog.
 
@@ -281,9 +283,9 @@ Clone the tufte repo then copy the needed files to the clojurescript project
 cp tufte.css ~/projects/bright_paper_werewolves/resources/public/css/
 cp -r et-book ~/projects/bright_paper_werewolves/resources/public/css/
 ```
-edit the hander file to use the new css file src/clj/bright_paper_werewolves/handler.clj
+Edit the hander file to use the new css file src/clj/bright_paper_werewolves/handler.clj
 
-make the include-css line look like the following:
+Make the include-css line look like the following:
 
 ```clojure
 (include-css (if (env :dev) "css/tufte.css" "css/tufte.css"))
@@ -305,7 +307,7 @@ No but it is mainly due to my inexperience and because I was creating something 
 
 Do I think a 15 minute clojurescript solution could be created?
 
-Absolutely, but it might take 20 minutes. The main hurdle in the clojure(script) ecosystem is understanding all the libraries. You don't have this friction in the Rails framework but I am certain the equivalent work could be accomplished. Honestly if you created the right lein templates or utilized boot the process could be incredibly streamlined. 
+Absolutely, but it might take 20 minutes. The main hurdle in the clojure(script) ecosystem is understanding all the libraries. You don't have this friction in the Rails framework but I am certain the equivalent work could be accomplished. Honestly if you created the right lein templates or utilized boot the process could be incredibly streamlined.
 
 #### github pages
 
