@@ -1,4 +1,4 @@
-#### The Challenge
+### The Challenge
 
 I was listening to an excellent [podcast with Eric Normand](http://giantrobots.fm/172)  where he mentioned that the tooling around clojurescript was mature enough to recreate the famous [Ruby 15 minute blog engine](https://www.youtube.com/watch?v=Gzj723LkRJY). So I felt like mucking about with clojurescript and I was tired of my previous blog platform. Since I have been playing with react/reagent on other projects I decided to see how long it would take before I could get something useful up and running.
 
@@ -21,7 +21,7 @@ First we need to decide on the shape of data structure that the SPA and the back
      :last-update "some epoch time"
      :text "..." }}})
 ```
-##### Backend/Liberator REST server
+### Backend/Liberator REST server
 
 Now that we know what the data will look like, let's create a process to serve it up to the front end. At first it will only respond to a GET and deliver a simple map via transit using liberator.
 
@@ -156,7 +156,7 @@ The above code watches a file which holds the map for the blog post's data. When
 
 OK now that's out of the way. Let's switch back to the front end and finish the minimum viable code there.
 
-##### Frontend/React based SPA (Single Page App)
+### Frontend/React based SPA (Single Page App)
 
 First create a new reagent project named after a song from one of [my favorite bands](http://genius.com/Guided-by-voices-bright-paper-werewolves-lyrics):
 
@@ -273,7 +273,7 @@ Now for the code. Most of the code below came from the lein reagent template.
   (mount-root))
 ```
 
-###### Style the page
+### Style the page
 
 We are going to make it look nice by adding [tufte.css]( https://edwardtufte.github.io/tufte-css/)
 
@@ -291,11 +291,11 @@ Make the include-css line look like the following:
 (include-css (if (env :dev) "css/tufte.css" "css/tufte.css"))
 ```
 
-##### Adding blog posts
+### Adding blog posts
 
 For now I am keeping the posts in a file under git. When I want to CRUD posts I simply update the file and then do the git pull on the server. The blog server will watch the file and update the posts when it is modified. This is admittedly a very idiomatic process and it works for a personal blog.
 
-#### Conclusions
+### Conclusions
 
 Was I able to do this in 15 minutes?
 
@@ -309,7 +309,7 @@ Do I think a 15 minute clojurescript solution could be created?
 
 Absolutely, but it might take 20 minutes. The main hurdle in the clojure(script) ecosystem is understanding all the libraries. You don't have this friction in the Rails framework but I am certain the equivalent work could be accomplished. Honestly if you created the right lein templates or utilized boot the process could be incredibly streamlined.
 
-#### github pages
+### github pages
 
 https://github.com/ECAllen/blog-server
 
