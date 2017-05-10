@@ -25,3 +25,12 @@ Signs you are ready to move to the next step. You feel urge to do something when
 
 Daily review of effectiveness and tomorrow's plan.  
 
+Ongoing list of daily accomplishments
+
+Only items that give leveragei or potentially give leverage go on the accomplishments list.
+
+For instance cleaning the house does not go on the accomlishements list but writing a blog post does.
+
+Order todo's by leverage
+
+
