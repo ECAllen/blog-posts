@@ -3,7 +3,7 @@
 
 put in some stuff about myself
 
-## Algo
+## Overview 
 
 ### Step 1
 
@@ -33,4 +33,28 @@ For instance cleaning the house does not go on the accomlishements list but writ
 
 Order todo's by leverage
 
+## Algo
 
+review alexa todo
+
+review calendar
+
+do quick tasks 
+
+work in 20 min intervals
+
+do accomplishments list at end of the night
+
+read
+
+## Alternative
+
+review alexa todo
+
+review calendar
+
+WAIDN 
+
+pick tasks that maximize effectiveness in the world
+
+do those tasks
