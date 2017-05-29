@@ -1,7 +1,21 @@
-
 # Intro
 
-put in some stuff about myself
+EITW = effetiveness in the world
+
+WAIDN = what am i doing now
+
+If I were to write a manifesto for this alogrithm it would be about effectiveness in the world. This should be your mantra above all others. Why? Let's think about death for a second. Many people claim they know what the anwers are and what happens after death. If you are one of these people then this is not for you. You should stop ready and ruthessly trying to convince people of your truth. For the rest of us read on... we don't know what happens after death. There may be a life after death, maybe not. What I do know is that we are like boats that leave a wake in this world. Over time that wake will dissapate but it no doubt has an effect. And given the butterfly effect who knows what the long term affects of even a little wake are. The point is that you want to control that wake. You dont want you legacy to be that you watched a lot of television and yelled at your kids. Now is a time of truth for you. Look into yourself and decide what you really want. If you want to be comfortable then stop reading without guilt. There is nothing wrong with wanting to be comfortable. Comfort is the engine which powers the American economy :) There are plenty of people who were comfortable and had great legacies. If this is you stop reading without guilt. Seriously you can stop. 
+
+insert form to pledge before continueing
+
+Fuck comfort. Nothing good came out of being comfortable or nice. People who are doing shit offend others. They are surrounded in controversy. They selfishy use their time. now dont get me wrong. Some people are just dramatic. That is different than slef interestly pursueing a goal. 
+
+So what is the point of life then? I don't know and can't answer that for you. No one can. i do know that you will have to wrestle with this question. Doesn't matter whether you are in a jail cell or the biggest atheist. We all must come face to face with this question and I have a radical answer. It is to be effective in the world (EITW). Now I need to justify this to you. Imagine a man who is independently wealthy. He has a mound of cash and doesnt invest it. Kind of Scrooge McDuck and his pile of gold. He reads, he does not review the books, he does not aggregate the information, he does not write anything himself, he has no family and friends, he simply consumes. He reads, he plays video games and spends his pile of cash. Now by simply participating in the economy he has some affect but it is not much. He dies. What was his wake? Where was he going. Most of us are doing this by simply consuming. The good news is that in the US we live in a captialist system which forces us to participate in the economy. If we don't have our desire to be effective in the world then an enterpenuer will employ us so we can be. The economic system forces us to do this and that is a good thing. I think economic statistics like effeciency and productivity are trying to get at these these concepts.
+
+Now take some time and think about this. By some time I mean about a week. You need to have a trigger to remind you to think about these concepts. The trigger will be a screen. A computer screen, TV screen, and cell phone screen etc... when you see a scrren I want you to think of one thing... effectiveness in the world. Let the concept sit in the back of your mind. Let it become a mantra. When you look at a computer screen at work say "effectiveness in the world" and then let the concept sit in your subconcious. Move on with your work. DO NOT act on it yet. Why? Because your mind will naturally associate a negative feedback if you push yourself to at on it. Rather let it be something pleasurable. Notice how others are not effective in the world ( comparison is always pleasurable to our monkey brains). Think of the positive aspects if effectiveness. Daydream a little about how awesome it would be to be effective. Give yourself permission to let yourself be unrealistic. Have fun with it. The point is to setup positive associations. Believe me the slog wiull come later.
+
+maximize productivity and effeciency.
+
 
 ## Overview 
 
@@ -53,8 +67,12 @@ review alexa todo
 
 review calendar
 
-WAIDN 
+review accomplishments.md
 
-pick tasks that maximize effectiveness in the world
+add entries for discraction section
+
+prioritize tasks that maximize effectiveness in the world EITW
 
 do those tasks
+
+WAIDN 
