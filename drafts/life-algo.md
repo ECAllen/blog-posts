@@ -16,9 +16,13 @@ Now take some time and think about this. By some time I mean about a week. You n
 
 maximize productivity and effeciency.
 
+Emotions are the bedrock of our psyche. We try to rationalize
+
+Imagine how good it will feel to get something accomplished. Try to actually feel those emotions. 
+
+Fractal view of emotions and life pattern -> broccoli. List 5 negative experiences. Seperately list reoccurring patterns in life. Synthesize.
 
 ## Overview 
-
 ### Step 1
 
 As much as possible ask "What am I doing now?". Do this until you are constantly doing it throughout the day. Do not alter your behaviour. Simply notice what is happening. Like so many problems in life awareness is the first step. 
@@ -47,21 +51,23 @@ For instance cleaning the house does not go on the accomlishements list but writ
 
 Order todo's by leverage
 
+## Analysis
+### 5 negative experiences 
+
+Getting beat up in gang initiation when I was a kid.
+
+Seeing mom kiss that guy.
+
+Moving freshman year of high school.
+
+
+### Reoccurring patterns in life 
+
+Growing tired of work position.
+
+
+### Synthesize
 ## Algo
-
-review alexa todo
-
-review calendar
-
-do quick tasks 
-
-work in 20 min intervals
-
-do accomplishments list at end of the night
-
-read
-
-## Alternative
 
 review alexa todo
 
@@ -73,6 +79,8 @@ add entries for discraction section
 
 prioritize tasks that maximize effectiveness in the world EITW
 
+imagine how good it will be to get those things accomplished
+
 do those tasks
 
-WAIDN 
+
